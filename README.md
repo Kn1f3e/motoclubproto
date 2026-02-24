@@ -1,2 +1,0 @@
-# motoclubproto
-VSE Moto Club
