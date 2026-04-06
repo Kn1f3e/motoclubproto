@@ -1,0 +1,327 @@
+﻿.detail-page {
+  display: grid;
+  gap: 16px;
+}
+
+.detail-card {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01));
+  padding: clamp(22px, 4vw, 38px);
+}
+
+.detail-card h2 {
+  margin: 14px 0 0;
+}
+
+.detail-card p {
+  margin: 12px 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+  max-width: 64ch;
+}
+
+.detail-card-main {
+  order: 0;
+}
+
+.detail-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.detail-subcard h3 {
+  margin: 0;
+  font-size: 1.08rem;
+}
+
+.detail-subcard p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  line-height: 1.62;
+}
+
+.detail-back-btn {
+  margin: 0 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-soft);
+  color: var(--text);
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-back-btn:hover {
+  border-color: var(--accent);
+}
+
+.detail-back-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.detail-link-card {
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.detail-link-card.page-appear {
+  transition-property: opacity, transform, border-color, box-shadow;
+  transition-duration: 0.55s, 0.55s, 0.2s, 0.2s;
+  transition-timing-function: ease, ease, ease, ease;
+  transition-delay: var(--appear-delay, 0s), var(--appear-delay, 0s), 0s, 0s;
+}
+
+.detail-link-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.26);
+}
+
+.doc-download-link {
+  text-decoration: none;
+  display: inline-block;
+}
+
+.charter-download-wrap {
+  margin-top: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.charter-content-card {
+  display: grid;
+  gap: 16px;
+}
+
+.charter-section h3 {
+  margin: 0;
+}
+
+.charter-list {
+  margin: 10px 0 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  line-height: 1.62;
+}
+
+.not-found-message {
+  margin: 10px 0 0 !important;
+  color: var(--text) !important;
+  font-size: clamp(1.5rem, 2.6vw, 2.1rem) !important;
+  line-height: 1.3 !important;
+  font-weight: 700 !important;
+  max-width: none !important;
+}
+
+.not-found-btn {
+  margin-top: 22px;
+}
+
+.admin-auth-error {
+  margin-top: 3px;
+  text-align: center;
+  justify-self: center;
+  font-size: 0.98rem !important;
+  line-height: 1.3 !important;
+}
+
+.admin-auth-card {
+  width: min(620px, 100%);
+  justify-self: center;
+}
+
+.admin-tile {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.admin-tile:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.admin-tile.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(255, 107, 36, 0.14) inset;
+}
+
+.admin-points {
+  margin: 12px 0 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  line-height: 1.62;
+}
+
+.admin-actions {
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.admin-function-card {
+  width: min(720px, 100%);
+  justify-self: center;
+}
+
+.admin-blocks-grid {
+  width: min(760px, 100%);
+  justify-self: center;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.admin-blocks-grid .admin-tile {
+  min-height: 92px;
+  padding: 18px 14px;
+  text-align: center;
+  justify-items: center;
+  align-content: center;
+}
+
+@media (max-width: 860px) {
+  .admin-blocks-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.admin-actions h3 {
+  margin: 0;
+}
+
+.admin-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.admin-select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel-soft);
+  color: var(--text);
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.admin-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(255, 107, 36, 0.2);
+}
+
+.admin-compact-btn {
+  width: min(220px, 100%);
+  justify-self: center;
+}
+
+.admin-save-btn:hover {
+  background: linear-gradient(90deg, #2d9d4f, #7ae582);
+  color: #0b1b11;
+}
+
+.admin-delete-btn:hover {
+  background: linear-gradient(90deg, #9b2f2f, #ff7e72);
+  color: #fff5f4;
+}
+
+.admin-reset-btn {
+  background: var(--panel-soft);
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.admin-reset-btn:hover {
+  border-color: var(--accent);
+  filter: none;
+}
+
+.admin-divider {
+  height: 1px;
+  background: var(--line);
+  opacity: 0.8;
+  margin: 6px 0 2px;
+}
+
+.admin-textarea {
+  width: 100%;
+  min-height: 110px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel-soft);
+  color: var(--text);
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.admin-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(255, 107, 36, 0.2);
+}
+
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(5, 10, 14, 0.62);
+  backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.confirm-dialog {
+  width: min(460px, 100%);
+  border: 1px solid color-mix(in srgb, var(--line) 55%, var(--text) 45%);
+  border-radius: 16px;
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.08)),
+    var(--panel);
+  padding: 18px;
+  box-shadow: 0 22px 44px rgba(0, 0, 0, 0.45);
+}
+
+.confirm-message {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.55;
+}
+
+.confirm-actions {
+  margin-top: 14px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.confirm-cancel {
+  background: var(--panel-soft);
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.confirm-cancel:hover {
+  border-color: var(--accent);
+  filter: none;
+}

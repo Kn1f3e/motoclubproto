@@ -10,8 +10,8 @@ const lastName = ref(appStore.state.lastName)
 const middleName = ref(appStore.state.middleName)
 const birthDate = ref(appStore.state.birthDate)
 const nickname = ref(appStore.state.nickname)
-const avatarMenuOpen = ref(false)
 const profileSaved = ref(false)
+const profileSubmitted = ref(false)
 const avatarError = ref('')
 const pageVisible = ref(false)
 const activeTab = ref('profile')
@@ -19,6 +19,7 @@ const mobileSidebarOpen = ref(false)
 const notificationsRide = ref(true)
 const notificationsEvents = ref(true)
 const notificationsNews = ref(false)
+const selectedPatchId = ref('p1')
 let profileSavedTimer = null
 
 const isRu = computed(() => appStore.state.language === 'ru')
@@ -30,12 +31,26 @@ const safeUi = computed(() => {
       account: 'Account',
       tabs: {
         profile: 'Profile',
+        patches: 'Patches',
         settings: 'Settings',
         notifications: 'Notifications'
       },
       panelTitle: {
+        patches: 'Club patches',
         settings: 'Account settings',
         notifications: 'Notifications'
+      },
+      patches: {
+        title: 'Your patches',
+        desc: 'Tap a patch icon to view what it is awarded for.',
+        adminOnly: 'Awarded by administrator only',
+        locked: 'Locked',
+        p1: 'Road beginner',
+        p1d: 'First registered route completed.',
+        p2: 'Weekend rider',
+        p2d: '3+ weekend rides with the club.',
+        p3: 'Touring spirit',
+        p3d: 'Participation in long-distance moto trips.'
       },
       settings: {
         themeTitle: 'Theme',
@@ -60,12 +75,26 @@ const safeUi = computed(() => {
     account: '\u041b\u0438\u0447\u043d\u044b\u0439 \u043a\u0430\u0431\u0438\u043d\u0435\u0442',
     tabs: {
       profile: '\u041f\u0440\u043e\u0444\u0438\u043b\u044c',
+      patches: '\u041d\u0430\u0448\u0438\u0432\u043a\u0438',
       settings: '\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438',
       notifications: '\u0423\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0438\u044f'
     },
     panelTitle: {
+      patches: '\u041d\u0430\u0448\u0438\u0432\u043a\u0438 \u043a\u043b\u0443\u0431\u0430',
       settings: '\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430',
       notifications: '\u0423\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0438\u044f'
+    },
+    patches: {
+      title: '\u0412\u0430\u0448\u0438 \u043d\u0430\u0448\u0438\u0432\u043a\u0438',
+      desc: '\u041d\u0430\u0436\u043c\u0438\u0442\u0435 \u043d\u0430 \u0438\u043a\u043e\u043d\u043a\u0443 \u043d\u0430\u0448\u0438\u0432\u043a\u0438, \u0447\u0442\u043e\u0431\u044b \u0443\u0432\u0438\u0434\u0435\u0442\u044c, \u0437\u0430 \u0447\u0442\u043e \u043e\u043d\u0430 \u0432\u044b\u0434\u0430\u0451\u0442\u0441\u044f.',
+      adminOnly: '\u0412\u044b\u0434\u0430\u0451\u0442\u0441\u044f \u0442\u043e\u043b\u044c\u043a\u043e \u0430\u0434\u043c\u0438\u043d\u0438\u0441\u0442\u0440\u0430\u0442\u043e\u0440\u043e\u043c',
+      locked: '\u0417\u0430\u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u0430\u043d\u043e',
+      p1: '\u041f\u0435\u0440\u0432\u044b\u0439 \u043c\u0430\u0440\u0448\u0440\u0443\u0442',
+      p1d: '\u0417\u0430\u0432\u0435\u0440\u0448\u0451\u043d \u043f\u0435\u0440\u0432\u044b\u0439 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u0439 \u0432\u044b\u0435\u0437\u0434.',
+      p2: '\u0420\u0430\u0439\u0434\u0435\u0440 \u0432\u044b\u0445\u043e\u0434\u043d\u043e\u0433\u043e \u0434\u043d\u044f',
+      p2d: '\u0423\u0447\u0430\u0441\u0442\u0438\u0435 \u0432 3+ \u0432\u044b\u0435\u0437\u0434\u0430\u0445 \u0432\u044b\u0445\u043e\u0434\u043d\u043e\u0433\u043e \u0434\u043d\u044f.',
+      p3: '\u0414\u0443\u0445 \u043c\u043e\u0442\u043e\u0442\u0443\u0440\u0438\u0437\u043c\u0430',
+      p3d: '\u0423\u0447\u0430\u0441\u0442\u0438\u0435 \u0432 \u0434\u0430\u043b\u044c\u043d\u0438\u0445 \u043c\u043e\u0442\u043e\u043f\u0443\u0442\u0435\u0448\u0435\u0441\u0442\u0432\u0438\u044f\u0445.'
     },
     settings: {
       themeTitle: '\u0422\u0435\u043c\u0430 \u043e\u0444\u043e\u0440\u043c\u043b\u0435\u043d\u0438\u044f',
@@ -109,10 +138,6 @@ const selectTab = (tabId) => {
   closeMobileSidebar()
 }
 
-const toggleAvatarMenu = () => {
-  avatarMenuOpen.value = !avatarMenuOpen.value
-}
-
 const handleAvatarUpload = async (event) => {
   const [file] = event.target.files || []
   if (!file) return
@@ -120,7 +145,6 @@ const handleAvatarUpload = async (event) => {
   try {
     await appStore.setAvatar(file)
     avatarError.value = ''
-    avatarMenuOpen.value = false
   } catch (error) {
     avatarError.value = error.message
   } finally {
@@ -131,10 +155,15 @@ const handleAvatarUpload = async (event) => {
 const removeAvatar = () => {
   appStore.removeAvatar()
   avatarError.value = ''
-  avatarMenuOpen.value = false
 }
 
 const saveProfile = () => {
+  profileSubmitted.value = true
+  if (firstNameError.value || nicknameError.value) {
+    profileSaved.value = false
+    return
+  }
+
   appStore.saveProfile({
     firstName: firstName.value,
     lastName: lastName.value,
@@ -168,14 +197,36 @@ watch(mobileSidebarOpen, (open) => {
 
 const tabItemsSafe = computed(() => [
   { id: 'profile', label: safeUi.value.tabs.profile },
+  { id: 'patches', label: safeUi.value.tabs.patches },
   { id: 'settings', label: safeUi.value.tabs.settings },
   { id: 'notifications', label: safeUi.value.tabs.notifications }
 ])
 
 const panelTitleSafe = computed(() => {
+  if (activeTab.value === 'patches') return safeUi.value.panelTitle.patches
   if (activeTab.value === 'settings') return safeUi.value.panelTitle.settings
   if (activeTab.value === 'notifications') return safeUi.value.panelTitle.notifications
   return appStore.t('profile.title')
+})
+
+const patchItems = computed(() => [
+  { id: 'p1', icon: '🛣️', title: safeUi.value.patches.p1, desc: safeUi.value.patches.p1d, locked: !appStore.hasPatch('p1') },
+  { id: 'p2', icon: '🏍️', title: safeUi.value.patches.p2, desc: safeUi.value.patches.p2d, locked: !appStore.hasPatch('p2') },
+  { id: 'p3', icon: '🧭', title: safeUi.value.patches.p3, desc: safeUi.value.patches.p3d, locked: !appStore.hasPatch('p3') }
+])
+
+const selectedPatch = computed(() => patchItems.value.find((p) => p.id === selectedPatchId.value) || patchItems.value[0])
+
+const firstNameError = computed(() => {
+  if (!profileSubmitted.value) return ''
+  if (firstName.value.trim()) return ''
+  return isRu.value ? '\u0418\u043c\u044f \u043e\u0431\u044f\u0437\u0430\u0442\u0435\u043b\u044c\u043d\u043e \u0434\u043b\u044f \u0437\u0430\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f.' : 'First name is required.'
+})
+
+const nicknameError = computed(() => {
+  if (!profileSubmitted.value) return ''
+  if (nickname.value.trim()) return ''
+  return isRu.value ? '\u041f\u0440\u043e\u0437\u0432\u0438\u0449\u0435 \u043e\u0431\u044f\u0437\u0430\u0442\u0435\u043b\u044c\u043d\u043e \u0434\u043b\u044f \u0437\u0430\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f.' : 'Nickname is required.'
 })
 
 onMounted(triggerPageIntro)
@@ -248,26 +299,20 @@ onBeforeUnmount(() => {
               <form class="profile-form" @submit.prevent="saveProfile">
                 <div class="profile-layout">
                   <div class="avatar-column">
-                    <button type="button" class="avatar-frame avatar-trigger" @click="toggleAvatarMenu">
+                    <div class="avatar-frame avatar-trigger">
                       <img v-if="appStore.state.avatarUrl" :src="appStore.state.avatarUrl" :alt="appStore.t('profile.photo')" />
                       <span v-else>{{ appStore.t('profile.photo') }}</span>
-                    </button>
+                    </div>
 
-                    <TransitionGroup name="avatar-action" tag="div" class="avatar-actions">
-                      <label v-if="avatarMenuOpen" key="upload" class="upload-btn">
+                    <div class="avatar-actions">
+                      <label v-if="!appStore.state.avatarUrl" class="upload-btn">
                         {{ appStore.t('profile.upload') }}
                         <input type="file" accept="image/*" @change="handleAvatarUpload" />
                       </label>
-                      <button
-                        v-if="avatarMenuOpen && appStore.state.avatarUrl"
-                        key="remove"
-                        type="button"
-                        class="upload-btn danger-btn"
-                        @click="removeAvatar"
-                      >
+                      <button v-else type="button" class="upload-btn danger-btn" @click="removeAvatar">
                         {{ appStore.t('profile.remove') }}
                       </button>
-                    </TransitionGroup>
+                    </div>
 
                     <p v-if="avatarError" class="error-text avatar-error">{{ avatarError }}</p>
                   </div>
@@ -276,7 +321,12 @@ onBeforeUnmount(() => {
                     <div class="name-grid">
                       <label class="field">
                         <span>{{ appStore.t('profile.firstName') }}</span>
-                        <input v-model="firstName" type="text" :placeholder="appStore.t('profile.firstName')" />
+                        <input
+                          v-model="firstName"
+                          type="text"
+                          :placeholder="appStore.t('profile.firstName')"
+                          :class="{ 'input-error': firstNameError }"
+                        />
                       </label>
 
                       <label class="field">
@@ -289,6 +339,7 @@ onBeforeUnmount(() => {
                         <input v-model="middleName" type="text" :placeholder="appStore.t('profile.middleName')" />
                       </label>
                     </div>
+                    <span v-if="firstNameError" class="error-text required-error name-grid-error">{{ firstNameError }}</span>
 
                     <label class="field">
                       <span>{{ appStore.t('profile.birthDate') }}</span>
@@ -297,7 +348,13 @@ onBeforeUnmount(() => {
 
                     <label class="field">
                       <span>{{ appStore.t('profile.nickname') }}</span>
-                      <input v-model="nickname" type="text" :placeholder="appStore.t('profile.nicknamePh')" />
+                      <input
+                        v-model="nickname"
+                        type="text"
+                        :placeholder="appStore.t('profile.nicknamePh')"
+                        :class="{ 'input-error': nicknameError }"
+                      />
+                      <span v-if="nicknameError" class="error-text required-error">{{ nicknameError }}</span>
                     </label>
 
                     <label class="field">
@@ -349,6 +406,36 @@ onBeforeUnmount(() => {
                     <option value="en">EN</option>
                   </select>
                 </div>
+              </div>
+            </div>
+
+            <div v-else-if="activeTab === 'patches'" key="patches-tab" class="profile-tab-content">
+              <div class="profile-settings-card">
+                <h3>{{ safeUi.patches.title }}</h3>
+                <p>{{ safeUi.patches.desc }}</p>
+              </div>
+
+              <div class="patches-grid">
+                <button
+                  v-for="patch in patchItems"
+                  :key="patch.id"
+                  type="button"
+                  class="patch-item"
+                  :class="{ active: selectedPatchId === patch.id }"
+                  @click="selectedPatchId = patch.id"
+                >
+                  <span class="patch-icon" aria-hidden="true">{{ patch.icon }}</span>
+                  <span class="patch-title">{{ patch.title }}</span>
+                  <span v-if="patch.locked" class="patch-lock">{{ safeUi.patches.locked }}</span>
+                </button>
+              </div>
+
+              <div v-if="selectedPatch" class="profile-settings-card patch-info-card">
+                <h3>{{ selectedPatch.title }}</h3>
+                <p>{{ selectedPatch.desc }}</p>
+                <p class="patch-status" :class="{ unlocked: !selectedPatch.locked }">
+                  {{ selectedPatch.locked ? safeUi.patches.adminOnly : (isRu ? 'Выдано администратором' : 'Granted by administrator') }}
+                </p>
               </div>
             </div>
 

@@ -63,6 +63,22 @@ const router = createRouter({
       path: '/moto-service',
       name: 'moto-service',
       component: () => import('../pages/MotoServicePage.vue')
+    },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: () => import('../pages/AdminPage.vue')
+    },
+    {
+      path: '/:customSlug',
+      name: 'custom-section',
+      component: () => import('../pages/CustomSectionPage.vue')
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('../pages/NotFoundPage.vue'),
+      meta: { public: true }
     }
   ]
 })

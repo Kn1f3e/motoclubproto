@@ -1,8 +1,9 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { appStore } from '../state/AppStore'
 
+const route = useRoute()
 const router = useRouter()
 const pageVisible = ref(false)
 const cardAppearBaseDelay = 0.26
@@ -31,53 +32,36 @@ const blockAppearStyle = (index) => ({
   '--appear-delay': `${cardAppearBaseDelay + index * cardAppearStep}s`
 })
 
-const pageCopy = computed(() => {
-  if (appStore.state.language === 'ru') {
-    return {
-      title: 'Маршруты',
-      intro: 'Подборки маршрутов с дистанцией, сложностью и ключевыми точками пути.',
-      cards: [
-        {
-          id: 'routes-default-1',
-          title: 'Популярный маршрут',
-          subtitle: '220 км',
-          body: 'Покрытие смешанное, рекомендуемая группа 4-8 мотоциклов.'
-        }
-      ]
-    }
-  }
-
-  return {
-    title: 'Routes',
-    intro: 'Curated routes with distance, complexity, and checkpoints.',
-    cards: [
-      {
-        id: 'routes-default-1',
-        title: 'Popular route',
-        subtitle: '220 km',
-        body: 'Mixed surface, recommended group size 4-8 motorcycles.'
-      }
-    ]
-  }
+const section = computed(() => {
+  const path = route.path
+  const sections = appStore.state.siteContent?.homeSections
+  if (!Array.isArray(sections)) return null
+  return sections.find((item) => item?.to === path) || null
 })
 
-const sectionCards = computed(() => appStore.getSectionCards('/routes', pageCopy.value.cards))
+const sectionCards = computed(() => appStore.getSectionCards(route.path, []))
 
-onMounted(triggerPageIntro)
+onMounted(() => {
+  if (!section.value) {
+    router.replace({ name: 'not-found' })
+    return
+  }
+  triggerPageIntro()
+})
 </script>
 
 <template>
-  <main :class="['detail-page', 'page-appear', 'page-delay-1', { 'page-visible': pageVisible }]">
+  <main v-if="section" :class="['detail-page', 'page-appear', 'page-delay-1', { 'page-visible': pageVisible }]">
     <section :class="['detail-card', 'page-appear', 'page-delay-2', { 'page-visible': pageVisible }]">
       <button type="button" class="detail-back-btn" @click="goBackSection">
         <span class="detail-back-icon" aria-hidden="true">&#8617;</span>
         <span>{{ appStore.state.language === 'ru' ? 'Назад' : 'Back' }}</span>
       </button>
-      <h2>{{ pageCopy.title }}</h2>
-      <p>{{ pageCopy.intro }}</p>
+      <h2>{{ section.title }}</h2>
+      <p>{{ section.desc }}</p>
     </section>
 
-    <section class="detail-grid">
+    <section v-if="sectionCards.length" class="detail-grid">
       <article
         v-for="(card, index) in sectionCards"
         :key="card.id || `${card.title}-${index}`"

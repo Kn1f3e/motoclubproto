@@ -1,0 +1,60 @@
+﻿@media (max-width: 900px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+
+  .app-shell {
+    margin-top: 122px;
+  }
+
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .avatar-column {
+    max-width: 220px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .name-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-panel-header {
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding-bottom: 10px;
+  }
+
+  .profile-panel-header .profile-nav-btn {
+    width: 100%;
+  }
+
+  .profile-mobile-menu-btn {
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: 0.82rem;
+    padding: 6px 9px;
+  }
+
+  .profile-title {
+    text-align: right;
+    font-size: 1rem;
+    min-width: 0;
+    line-height: 1.2;
+  }
+
+  .profile-main-panel {
+    padding: 12px;
+  }
+
+  .scroll-top-btn {
+    right: 12px;
+    bottom: 14px;
+    width: 54px;
+    height: 54px;
+  }
+}

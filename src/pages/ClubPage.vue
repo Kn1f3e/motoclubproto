@@ -81,6 +81,10 @@ const clubSections = computed(() => {
   ]
 })
 
+const extraClubCards = computed(() => {
+  return appStore.getSectionCards('/club', [])
+})
+
 onMounted(triggerPageIntro)
 </script>
 
@@ -112,6 +116,19 @@ onMounted(triggerPageIntro)
         <h3>{{ section.title }}</h3>
         <p>{{ section.body }}</p>
       </RouterLink>
+    </section>
+
+    <section v-if="extraClubCards.length" class="detail-grid">
+      <article
+        v-for="(card, index) in extraClubCards"
+        :key="card.id || `${card.title}-${index}`"
+        :class="['detail-card', 'detail-subcard', 'page-appear', { 'page-visible': pageVisible }]"
+        :style="sectionCardAppearStyle(index + clubSections.length)"
+      >
+        <h3>{{ card.title }}</h3>
+        <p v-if="card.subtitle">{{ card.subtitle }}</p>
+        <p>{{ card.body }}</p>
+      </article>
     </section>
   </main>
 </template>

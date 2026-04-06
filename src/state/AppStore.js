@@ -207,6 +207,7 @@ class AppStore {
   constructor() {
     this.state = reactive({
       isAuthenticated: false,
+      isAdminAuthorized: false,
       currentUserName: 'Гость',
       firstName: '',
       lastName: '',
@@ -216,18 +217,38 @@ class AppStore {
       avatarUrl: '',
       welcomeVisible: false,
       welcomeMessage: '',
+      adminNoticeVisible: false,
+      adminNoticeText: '',
+      adminNoticeType: 'info',
       accountId: '',
+      awardedPatches: [],
+      userRole: 'member',
+      siteContent: {
+        homeTitle: '',
+        homeSubtitle: '',
+        homeSections: [],
+        sectionCards: {}
+      },
       theme: 'light',
-      language: 'ru'
+      language: 'ru',
+      viewMode: 'auto'
     })
 
     this._welcomeTimer = null
+    this._adminNoticeTimer = null
     this._avatarObjectUrl = null
     this._loadPersistedState()
     this.applyTheme()
+    this.applyLayoutMode()
   }
 
   get roleName() {
+    if (this.state.userRole === 'admin') {
+      return this.state.language === 'ru' ? 'Администратор' : 'Administrator'
+    }
+    if (this.state.userRole === 'moderator') {
+      return this.state.language === 'ru' ? 'Модератор' : 'Moderator'
+    }
     return this.t('profile.roleValue')
   }
 
@@ -261,6 +282,18 @@ class AppStore {
     document.documentElement.setAttribute('data-theme', this.state.theme)
   }
 
+  setViewMode(mode) {
+    const normalized = mode === 'desktop' || mode === 'mobile' ? mode : 'auto'
+    this.state.viewMode = normalized
+    this.applyLayoutMode()
+    this._persistState()
+  }
+
+  applyLayoutMode() {
+    if (typeof document === 'undefined') return
+    document.documentElement.setAttribute('data-layout-mode', this.state.viewMode)
+  }
+
   _displayName() {
     return this.state.nickname.trim() || this.state.firstName.trim() || this.t('auth.fallbackMember')
   }
@@ -284,6 +317,97 @@ class AppStore {
     }, 3200)
   }
 
+  hasPatch(patchId) {
+    return this.state.awardedPatches.includes(patchId)
+  }
+
+  grantPatch(patchId) {
+    if (!patchId || this.hasPatch(patchId)) return
+    this.state.awardedPatches = [...this.state.awardedPatches, patchId]
+    this._persistState()
+  }
+
+  revokePatch(patchId) {
+    if (!patchId || !this.hasPatch(patchId)) return
+    this.state.awardedPatches = this.state.awardedPatches.filter((id) => id !== patchId)
+    this._persistState()
+  }
+
+  setUserRole(role) {
+    const allowed = ['member', 'moderator', 'admin']
+    this.state.userRole = allowed.includes(role) ? role : 'member'
+    this._persistState()
+  }
+
+  updateSiteContent(payload = {}) {
+    const next = {
+      ...this.state.siteContent,
+      ...payload
+    }
+
+    if (!Array.isArray(next.homeSections)) {
+      next.homeSections = []
+    } else {
+      next.homeSections = next.homeSections
+        .filter((item) => item && typeof item === 'object')
+        .map((item, index) => ({
+          id: typeof item.id === 'string' && item.id.trim() ? item.id.trim() : `custom-${Date.now()}-${index}`,
+          title: typeof item.title === 'string' ? item.title : '',
+          desc: typeof item.desc === 'string' ? item.desc : '',
+          to: typeof item.to === 'string' && item.to.trim() ? item.to.trim() : '/home'
+        }))
+    }
+
+    if (!next.sectionCards || typeof next.sectionCards !== 'object' || Array.isArray(next.sectionCards)) {
+      next.sectionCards = {}
+    } else {
+      const normalizedCards = {}
+      Object.entries(next.sectionCards).forEach(([route, cards]) => {
+        const key = typeof route === 'string' && route.trim() ? route.trim() : ''
+        if (!key || !Array.isArray(cards)) return
+
+        normalizedCards[key] = cards
+          .filter((card) => card && typeof card === 'object')
+          .map((card, index) => ({
+            id: typeof card.id === 'string' && card.id.trim() ? card.id.trim() : `card-${Date.now()}-${index}`,
+            title: typeof card.title === 'string' ? card.title : '',
+            subtitle: typeof card.subtitle === 'string' ? card.subtitle : '',
+            body: typeof card.body === 'string' ? card.body : ''
+          }))
+      })
+      next.sectionCards = normalizedCards
+    }
+
+    this.state.siteContent = next
+    this._persistState()
+  }
+
+  getSiteContent(key, fallback = '') {
+    const value = this.state.siteContent?.[key]
+    if (typeof value !== 'string') return fallback
+    return value.trim() || fallback
+  }
+
+  getSectionCards(route, fallback = []) {
+    if (typeof route !== 'string' || !route.trim()) return fallback
+    const cards = this.state.siteContent?.sectionCards?.[route]
+    if (!Array.isArray(cards) || cards.length === 0) return fallback
+    return cards
+  }
+
+  showAdminNotice(message, type = 'info') {
+    if (!message) return
+    if (this._adminNoticeTimer) clearTimeout(this._adminNoticeTimer)
+
+    this.state.adminNoticeText = message
+    this.state.adminNoticeType = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info'
+    this.state.adminNoticeVisible = true
+
+    this._adminNoticeTimer = setTimeout(() => {
+      this.state.adminNoticeVisible = false
+    }, 2800)
+  }
+
   login({ fallbackName, firstName = '', isRegistration = false }) {
     const resolvedName = firstName.trim() || fallbackName
     this.state.firstName = resolvedName
@@ -300,7 +424,13 @@ class AppStore {
 
   logout() {
     this.state.isAuthenticated = false
+    this.state.isAdminAuthorized = false
     this.state.welcomeVisible = false
+    this._persistState()
+  }
+
+  setAdminAuthorized(value) {
+    this.state.isAdminAuthorized = Boolean(value)
     this._persistState()
   }
 
@@ -364,6 +494,7 @@ class AppStore {
 
     const payload = {
       isAuthenticated: this.state.isAuthenticated,
+      isAdminAuthorized: this.state.isAdminAuthorized,
       currentUserName: this.state.currentUserName,
       firstName: this.state.firstName,
       lastName: this.state.lastName,
@@ -371,8 +502,12 @@ class AppStore {
       birthDate: this.state.birthDate,
       nickname: this.state.nickname,
       accountId: this.state.accountId,
+      awardedPatches: this.state.awardedPatches,
+      userRole: this.state.userRole,
+      siteContent: this.state.siteContent,
       theme: this.state.theme,
-      language: this.state.language
+      language: this.state.language,
+      viewMode: this.state.viewMode
     }
 
     try {
@@ -391,6 +526,7 @@ class AppStore {
       const saved = JSON.parse(raw)
 
       this.state.isAuthenticated = Boolean(saved.isAuthenticated)
+      this.state.isAdminAuthorized = Boolean(saved.isAdminAuthorized)
       this.state.currentUserName = saved.currentUserName || this.state.currentUserName
       this.state.firstName = saved.firstName || ''
       this.state.lastName = saved.lastName || ''
@@ -398,8 +534,43 @@ class AppStore {
       this.state.birthDate = saved.birthDate || ''
       this.state.nickname = saved.nickname || ''
       this.state.accountId = saved.accountId || ''
+      this.state.awardedPatches = Array.isArray(saved.awardedPatches) ? saved.awardedPatches.filter((id) => typeof id === 'string') : []
+      this.state.userRole = saved.userRole === 'admin' || saved.userRole === 'moderator' ? saved.userRole : 'member'
+      this.state.siteContent = {
+        homeTitle: typeof saved.siteContent?.homeTitle === 'string' ? saved.siteContent.homeTitle : '',
+        homeSubtitle: typeof saved.siteContent?.homeSubtitle === 'string' ? saved.siteContent.homeSubtitle : '',
+        homeSections: Array.isArray(saved.siteContent?.homeSections)
+          ? saved.siteContent.homeSections
+              .filter((item) => item && typeof item === 'object')
+              .map((item, index) => ({
+                id: typeof item.id === 'string' && item.id.trim() ? item.id.trim() : `custom-${Date.now()}-${index}`,
+                title: typeof item.title === 'string' ? item.title : '',
+                desc: typeof item.desc === 'string' ? item.desc : '',
+                to: typeof item.to === 'string' && item.to.trim() ? item.to.trim() : '/home'
+              }))
+          : [],
+        sectionCards:
+          saved.siteContent?.sectionCards && typeof saved.siteContent.sectionCards === 'object' && !Array.isArray(saved.siteContent.sectionCards)
+            ? Object.fromEntries(
+                Object.entries(saved.siteContent.sectionCards).map(([route, cards]) => [
+                  route,
+                  Array.isArray(cards)
+                    ? cards
+                        .filter((card) => card && typeof card === 'object')
+                        .map((card, index) => ({
+                          id: typeof card.id === 'string' && card.id.trim() ? card.id.trim() : `card-${Date.now()}-${index}`,
+                          title: typeof card.title === 'string' ? card.title : '',
+                          subtitle: typeof card.subtitle === 'string' ? card.subtitle : '',
+                          body: typeof card.body === 'string' ? card.body : ''
+                        }))
+                    : []
+                ])
+              )
+            : {}
+      }
       this.state.theme = saved.theme === 'dark' ? 'dark' : 'light'
       this.state.language = saved.language === 'en' ? 'en' : 'ru'
+      this.state.viewMode = saved.viewMode === 'desktop' || saved.viewMode === 'mobile' ? saved.viewMode : 'auto'
     } catch {
       // Ignore invalid persisted payload.
     }
@@ -407,6 +578,7 @@ class AppStore {
 
   dispose() {
     if (this._welcomeTimer) clearTimeout(this._welcomeTimer)
+    if (this._adminNoticeTimer) clearTimeout(this._adminNoticeTimer)
     if (this._avatarObjectUrl) URL.revokeObjectURL(this._avatarObjectUrl)
   }
 }

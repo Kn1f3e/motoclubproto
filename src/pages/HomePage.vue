@@ -1,15 +1,21 @@
-<script setup>
-import { computed, onMounted, ref } from 'vue'
+﻿<script setup>
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { appStore } from '../state/AppStore'
+import flagSrc from '../assets/flag.png'
 
 const pageVisible = ref(false)
+const isSectionsOpen = ref(false)
+const activeSlideIndex = ref(0)
+let galleryTimer = null
+
 const preloaded = {
   club: false,
   events: false,
   routes: false,
   motoService: false
 }
+
 const cardAppearBaseDelay = 0.26
 const cardAppearStep = 0.08
 
@@ -52,10 +58,6 @@ const homeCardAppearStyle = (index) => ({
   '--appear-delay': `${cardAppearBaseDelay + index * cardAppearStep}s`
 })
 
-const homeFooterAppearStyle = computed(() => ({
-  '--appear-delay': `${cardAppearBaseDelay + 4 * cardAppearStep + cardAppearStep}s`
-}))
-
 const motoServiceCard = computed(() => {
   if (appStore.state.language === 'ru') {
     return {
@@ -70,117 +72,185 @@ const motoServiceCard = computed(() => {
   }
 })
 
-onMounted(triggerPageIntro)
+const homeSections = computed(() => [
+  {
+    key: 'club',
+    to: '/club',
+    title: appStore.t('home.clubTitle'),
+    desc: appStore.t('home.clubDesc'),
+    prefetch: prefetchClub
+  },
+  {
+    key: 'events',
+    to: '/events',
+    title: appStore.t('home.eventsTitle'),
+    desc: appStore.t('home.eventsDesc'),
+    prefetch: prefetchEvents
+  },
+  {
+    key: 'routes',
+    to: '/routes',
+    title: appStore.t('home.routesTitle'),
+    desc: appStore.t('home.routesDesc'),
+    prefetch: prefetchRoutes
+  },
+  {
+    key: 'moto-service',
+    to: '/moto-service',
+    title: motoServiceCard.value.title,
+    desc: motoServiceCard.value.desc,
+    prefetch: prefetchMotoService
+  }
+])
+
+const customSections = computed(() => {
+  const sections = appStore.state.siteContent?.homeSections
+  if (!Array.isArray(sections) || sections.length === 0) return null
+
+  return sections.map((item, index) => {
+    const to = typeof item.to === 'string' && item.to.trim() ? item.to.trim() : '/home'
+    const prefetchMap = {
+      '/club': prefetchClub,
+      '/events': prefetchEvents,
+      '/routes': prefetchRoutes,
+      '/moto-service': prefetchMotoService
+    }
+
+    return {
+      key: item.id || `custom-${index}`,
+      to,
+      title: item.title || (appStore.state.language === 'ru' ? 'Раздел' : 'Section'),
+      desc: item.desc || '',
+      prefetch: prefetchMap[to] || (() => {})
+    }
+  })
+})
+
+const resolvedHomeSections = computed(() => customSections.value || homeSections.value)
+
+const gallerySlides = computed(() => {
+  if (appStore.state.language === 'ru') {
+    return [
+      {
+        key: 'mountain',
+        src: flagSrc,
+        title: 'Горные маршруты',
+        desc: 'Поездки с панорамными видами и остановками на перевалах.'
+      },
+      {
+        key: 'group',
+        src: flagSrc,
+        title: 'Клубные выезды',
+        desc: 'Совместные мотопробеги и маршруты выходного дня.'
+      },
+      {
+        key: 'sunset',
+        src: flagSrc,
+        title: 'Дальние путешествия',
+        desc: 'Многодневные поездки и точки притяжения по пути.'
+      }
+    ]
+  }
+
+  return [
+    {
+      key: 'mountain',
+      src: flagSrc,
+      title: 'Mountain routes',
+      desc: 'Rides with wide panoramic views and scenic pass stops.'
+    },
+    {
+      key: 'group',
+      src: flagSrc,
+      title: 'Club rides',
+      desc: 'Community ride-outs and curated weekend itineraries.'
+    },
+    {
+      key: 'sunset',
+      src: flagSrc,
+      title: 'Long-distance touring',
+      desc: 'Multi-day trips with memorable waypoints along the road.'
+    }
+  ]
+})
+
+const activeSlide = computed(() => gallerySlides.value[activeSlideIndex.value] ?? gallerySlides.value[0])
+
+const startGalleryAutoplay = () => {
+  if (galleryTimer) clearInterval(galleryTimer)
+  galleryTimer = setInterval(() => {
+    if (!gallerySlides.value.length) return
+    activeSlideIndex.value = (activeSlideIndex.value + 1) % gallerySlides.value.length
+  }, 4300)
+}
+
+const setSlide = (index) => {
+  activeSlideIndex.value = index
+}
+
+onMounted(() => {
+  triggerPageIntro()
+  startGalleryAutoplay()
+})
+
+onBeforeUnmount(() => {
+  if (galleryTimer) clearInterval(galleryTimer)
+})
 </script>
 
 <template>
   <main :class="['home', 'page-appear', 'page-delay-1', { 'page-visible': pageVisible }]">
-    <section :class="['home-hero', 'page-appear', 'page-delay-2', { 'page-visible': pageVisible }]">
-      <h2>{{ appStore.t('home.title') }}</h2>
-      <p>{{ appStore.t('home.subtitle') }}</p>
+    <section class="home-layout">
+      <section :class="['home-accordion', 'page-appear', 'page-delay-3', { 'page-visible': pageVisible }]">
+        <button class="home-accordion-toggle" type="button" @click="isSectionsOpen = !isSectionsOpen">
+          {{ appStore.state.language === 'ru' ? 'Разделы сайта' : 'Site sections' }}
+          <span :class="['home-accordion-arrow', { open: isSectionsOpen }]">▾</span>
+        </button>
+
+        <Transition name="home-sections">
+          <TransitionGroup v-if="isSectionsOpen" tag="ul" class="home-accordion-list" name="home-list-item">
+            <li v-for="(section, index) in resolvedHomeSections" :key="section.key" class="home-accordion-item" :style="homeCardAppearStyle(index)">
+              <RouterLink class="home-accordion-link" :to="section.to" @mouseenter="section.prefetch" @focus="section.prefetch">
+                <span class="home-accordion-link-title">{{ section.title }}</span>
+                <span class="home-accordion-link-desc">{{ section.desc }}</span>
+              </RouterLink>
+            </li>
+          </TransitionGroup>
+        </Transition>
+      </section>
+
+      <section class="home-content">
+        <section :class="['home-hero', 'page-appear', 'page-delay-2', { 'page-visible': pageVisible }]">
+          <h2>{{ appStore.getSiteContent('homeTitle', appStore.t('home.title')) }}</h2>
+          <p>{{ appStore.getSiteContent('homeSubtitle', appStore.t('home.subtitle')) }}</p>
+        </section>
+
+        <section :class="['home-gallery', 'page-appear', 'page-delay-4', { 'page-visible': pageVisible }]">
+          <Transition name="home-gallery-fade" mode="out-in">
+        <figure :key="activeSlide.key" class="home-gallery-slide">
+          <div class="home-gallery-media">
+            <img class="home-gallery-bg" :src="activeSlide.src" :alt="activeSlide.title" loading="lazy" />
+            <img class="home-gallery-fg" :src="activeSlide.src" :alt="activeSlide.title" loading="lazy" />
+          </div>
+          <figcaption>
+            <h3>{{ activeSlide.title }}</h3>
+            <p>{{ activeSlide.desc }}</p>
+          </figcaption>
+        </figure>
+          </Transition>
+
+          <div class="home-gallery-dots" role="tablist" :aria-label="appStore.state.language === 'ru' ? 'Слайды' : 'Slides'">
+            <button
+              v-for="(slide, index) in gallerySlides"
+              :key="slide.key"
+              type="button"
+              :class="['home-gallery-dot', { active: index === activeSlideIndex }]"
+              :aria-label="slide.title"
+              @click="setSlide(index)"
+            />
+          </div>
+        </section>
+      </section>
     </section>
-
-    <section class="home-grid">
-      <RouterLink
-        :class="['home-card', 'home-link-card', 'page-appear', { 'page-visible': pageVisible }]"
-        :style="homeCardAppearStyle(0)"
-        to="/club"
-        @mouseenter="prefetchClub"
-        @focus="prefetchClub"
-      >
-        <h3>{{ appStore.t('home.clubTitle') }}</h3>
-        <p>{{ appStore.t('home.clubDesc') }}</p>
-      </RouterLink>
-
-      <RouterLink
-        :class="['home-card', 'home-link-card', 'page-appear', { 'page-visible': pageVisible }]"
-        :style="homeCardAppearStyle(1)"
-        to="/events"
-        @mouseenter="prefetchEvents"
-        @focus="prefetchEvents"
-      >
-        <h3>{{ appStore.t('home.eventsTitle') }}</h3>
-        <p>{{ appStore.t('home.eventsDesc') }}</p>
-      </RouterLink>
-
-      <RouterLink
-        :class="['home-card', 'home-link-card', 'page-appear', { 'page-visible': pageVisible }]"
-        :style="homeCardAppearStyle(2)"
-        to="/routes"
-        @mouseenter="prefetchRoutes"
-        @focus="prefetchRoutes"
-      >
-        <h3>{{ appStore.t('home.routesTitle') }}</h3>
-        <p>{{ appStore.t('home.routesDesc') }}</p>
-      </RouterLink>
-
-      <RouterLink
-        :class="['home-card', 'home-link-card', 'page-appear', { 'page-visible': pageVisible }]"
-        :style="homeCardAppearStyle(3)"
-        to="/moto-service"
-        @mouseenter="prefetchMotoService"
-        @focus="prefetchMotoService"
-      >
-        <h3>{{ motoServiceCard.title }}</h3>
-        <p>{{ motoServiceCard.desc }}</p>
-      </RouterLink>
-    </section>
-
-    <footer :class="['home-footer', 'page-appear', { 'page-visible': pageVisible }]" :style="homeFooterAppearStyle">
-      <div class="home-footer-block">
-        <h4>{{ appStore.state.language === 'ru' ? 'Связь с нами' : 'Stay Connected' }}</h4>
-        <p class="home-footer-label">{{ appStore.state.language === 'ru' ? 'Соцсети' : 'Social' }}</p>
-        <div class="home-footer-links" aria-label="Social links">
-          <a
-            class="social-icon-link"
-            href="https://t.me/"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Telegram"
-            title="Telegram"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M21.9 4.6c.2-.9-.5-1.6-1.4-1.3L3.1 9.3c-1 .3-1 1.7 0 2l4.6 1.5 1.7 5.3c.3.9 1.4 1.1 2 .3l2.5-3.3 4.6 3.4c.7.5 1.7.2 1.9-.7L21.9 4.6zM9.5 12.3l8.2-5.6-6.5 6.8-.3 3.2-1.4-4.4z" />
-            </svg>
-          </a>
-          <a
-            class="social-icon-link"
-            href="https://vk.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="VK"
-            title="VK"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M3.9 7.5c.2 4.5 2.4 8.7 6.2 8.7h.6v-3.3c1.9.2 3.3 1.6 3.9 3.3h2.7c-.8-2.8-2.9-4.3-4.2-4.9 1.3-.8 3.1-2.6 3.5-4.7h-2.4c-.5 1.7-2.2 3.5-3.5 3.7V6.6H8.2v6.5c-1.4-.4-3.1-2.3-3.2-5.6H3.9z" />
-            </svg>
-          </a>
-          <a
-            class="social-icon-link"
-            href="https://www.youtube.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="YouTube"
-            title="YouTube"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M21.6 8.1a2.8 2.8 0 0 0-2-2c-1.8-.5-7.6-.5-7.6-.5s-5.8 0-7.6.5a2.8 2.8 0 0 0-2 2A29.7 29.7 0 0 0 2 12a29.7 29.7 0 0 0 .4 3.9 2.8 2.8 0 0 0 2 2c1.8.5 7.6.5 7.6.5s5.8 0 7.6-.5a2.8 2.8 0 0 0 2-2A29.7 29.7 0 0 0 22 12a29.7 29.7 0 0 0-.4-3.9zM10 15.2V8.8l5.2 3.2L10 15.2z" />
-            </svg>
-          </a>
-        </div>
-      </div>
-
-      <div class="home-footer-block">
-        <h4>{{ appStore.state.language === 'ru' ? 'Контакты' : 'Contacts' }}</h4>
-        <p class="home-footer-contact">
-          {{ appStore.state.language === 'ru' ? 'Email' : 'Email' }}:
-          <a href="mailto:contact@vsemoto.club">contact@vsemoto.club</a>
-        </p>
-        <p class="home-footer-contact">
-          {{ appStore.state.language === 'ru' ? 'Телефон' : 'Phone' }}:
-          <a href="tel:+79001234567">+7 (900) 123-45-67</a>
-        </p>
-      </div>
-    </footer>
   </main>
 </template>

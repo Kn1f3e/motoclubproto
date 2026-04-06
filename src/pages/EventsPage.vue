@@ -1,10 +1,12 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { appStore } from '../state/AppStore'
 
 const router = useRouter()
 const pageVisible = ref(false)
+const cardAppearBaseDelay = 0.26
+const cardAppearStep = 0.08
 
 const triggerPageIntro = () => {
   pageVisible.value = false
@@ -25,6 +27,42 @@ const goBackSection = () => {
   router.push('/home')
 }
 
+const blockAppearStyle = (index) => ({
+  '--appear-delay': `${cardAppearBaseDelay + index * cardAppearStep}s`
+})
+
+const pageCopy = computed(() => {
+  if (appStore.state.language === 'ru') {
+    return {
+      title: 'Ближайшие события',
+      intro: 'Ближайшие выезды клуба, weekend-туры и встречи по планированию маршрутов.',
+      cards: [
+        {
+          id: 'events-default-1',
+          title: 'Ближайший выезд',
+          subtitle: 'Суббота, 09:00',
+          body: 'Сбор на основной площадке клуба, маршрут средней сложности.'
+        }
+      ]
+    }
+  }
+
+  return {
+    title: 'Upcoming events',
+    intro: 'Upcoming club rides, weekend trips, and route planning meetings.',
+    cards: [
+      {
+        id: 'events-default-1',
+        title: 'Upcoming ride',
+        subtitle: 'Saturday, 09:00',
+        body: 'Meet at club point, medium-difficulty route.'
+      }
+    ]
+  }
+})
+
+const sectionCards = computed(() => appStore.getSectionCards('/events', pageCopy.value.cards))
+
 onMounted(triggerPageIntro)
 </script>
 
@@ -35,8 +73,21 @@ onMounted(triggerPageIntro)
         <span class="detail-back-icon" aria-hidden="true">&#8617;</span>
         <span>{{ appStore.state.language === 'ru' ? 'Назад' : 'Back' }}</span>
       </button>
-      <h2>{{ appStore.t('events.title') }}</h2>
-      <p>{{ appStore.t('events.body') }}</p>
+      <h2>{{ pageCopy.title }}</h2>
+      <p>{{ pageCopy.intro }}</p>
+    </section>
+
+    <section class="detail-grid">
+      <article
+        v-for="(card, index) in sectionCards"
+        :key="card.id || `${card.title}-${index}`"
+        :class="['detail-card', 'detail-subcard', 'page-appear', { 'page-visible': pageVisible }]"
+        :style="blockAppearStyle(index)"
+      >
+        <h3>{{ card.title }}</h3>
+        <p v-if="card.subtitle">{{ card.subtitle }}</p>
+        <p>{{ card.body }}</p>
+      </article>
     </section>
   </main>
 </template>

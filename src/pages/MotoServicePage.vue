@@ -37,22 +37,18 @@ const pageCopy = computed(() => {
       title: 'МотоМаркет и Сервис',
       intro:
         'Раздел для подбора, покупки и обслуживания мототехники: от аукционов до ремонта и аренды.',
-      blocks: [
+      cards: [
         {
-          title: 'Покупка и доставка техники',
-          body: 'Подбор мотоциклов с аукционов Японии и Китая, сопровождение сделки, логистика и доставка.'
+          id: 'service-default-1',
+          title: 'Покупка и доставка',
+          subtitle: 'Япония / Китай',
+          body: 'Подбор техники с аукционов, проверка, доставка и оформление.'
         },
         {
-          title: 'Аксессуары под заказ',
-          body: 'Подбор экипировки, расходников и аксессуаров под конкретную модель и задачи райдера.'
-        },
-        {
-          title: 'Ремонт и обслуживание',
-          body: 'Плановое ТО, диагностика, ремонт и подготовка техники к сезону и дальним поездкам.'
-        },
-        {
-          title: 'Аренда мототехники',
-          body: 'Временная аренда техники для поездок, мероприятий и тестовых маршрутов.'
+          id: 'service-default-2',
+          title: 'Аксессуары',
+          subtitle: 'Под заказ',
+          body: 'Подбор экипировки, расходников и аксессуаров под конкретную модель.'
         }
       ]
     }
@@ -62,26 +58,24 @@ const pageCopy = computed(() => {
     title: 'Moto Market & Service',
     intro:
       'A section for sourcing, buying, and servicing motorcycles: from auctions to maintenance and rental.',
-    blocks: [
+    cards: [
       {
+        id: 'service-default-1',
         title: 'Purchase and delivery',
-        body: 'Motorcycle sourcing from Japanese and Chinese auctions, deal support, logistics, and delivery.'
+        subtitle: 'Japan / China',
+        body: 'Auction sourcing, checks, delivery, and documentation.'
       },
       {
-        title: 'Accessories on request',
-        body: 'Gear, parts, and accessories tailored to a specific bike model and rider needs.'
-      },
-      {
-        title: 'Repair and maintenance',
-        body: 'Scheduled service, diagnostics, repairs, and bike preparation for season rides and long trips.'
-      },
-      {
-        title: 'Moto rental',
-        body: 'Short-term bike rental for trips, events, and test routes.'
+        id: 'service-default-2',
+        title: 'Accessories',
+        subtitle: 'On request',
+        body: 'Gear, parts, and accessories tailored to a specific bike model.'
       }
     ]
   }
 })
+
+const sectionCards = computed(() => appStore.getSectionCards('/moto-service', pageCopy.value.cards))
 
 onMounted(triggerPageIntro)
 </script>
@@ -99,13 +93,14 @@ onMounted(triggerPageIntro)
 
     <section class="detail-grid">
       <article
-        v-for="(block, index) in pageCopy.blocks"
-        :key="block.title"
+        v-for="(card, index) in sectionCards"
+        :key="card.id || `${card.title}-${index}`"
         :class="['detail-card', 'detail-subcard', 'page-appear', { 'page-visible': pageVisible }]"
         :style="blockAppearStyle(index)"
       >
-        <h3>{{ block.title }}</h3>
-        <p>{{ block.body }}</p>
+        <h3>{{ card.title }}</h3>
+        <p v-if="card.subtitle">{{ card.subtitle }}</p>
+        <p>{{ card.body }}</p>
       </article>
     </section>
   </main>

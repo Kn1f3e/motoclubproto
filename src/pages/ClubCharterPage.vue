@@ -18,8 +18,8 @@ const backLabel = computed(() => (appStore.state.language === 'ru' ? 'Назад
 const pageTitle = computed(() => (appStore.state.language === 'ru' ? 'Устав клуба' : 'Club charter'))
 const pageIntro = computed(() =>
   appStore.state.language === 'ru'
-    ? 'Ниже размещена структурированная информация из документа «ustav.docx». Для удобства также доступно скачивание оригинального файла.'
-    : 'Below is the structured information from the «ustav.docx» document. You can also download the original file.'
+    ? 'Ниже размещена структурированная информация из устава. Для удобства также доступно скачивание оригинального файла.'
+    : 'Below is the structured information from the document. You can also download the original file.'
 )
 
 const charterSectionsRu = [

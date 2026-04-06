@@ -1,0 +1,11 @@
+﻿.auth-links-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.auth-links-sep {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
