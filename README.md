@@ -17,6 +17,7 @@ Website project for promoting moto tourism.
   - left collapsible sections menu
   - hero block
   - auto-playing photo slider
+  - smooth animations for static and dynamically added/removed menu sections
 - Club section with subpages:
   - Club charter
   - Friends and partners
@@ -27,12 +28,26 @@ Website project for promoting moto tourism.
 - Moto Market & Service page
 - Profile page with tabs:
   - Profile
+  - Patches
   - Settings
   - Notifications
+- Admin panel with 3 functional modules:
+  - Patch awards (grant/revoke)
+  - Users (role management)
+  - Site content (home hero + home sections)
+- Site content management from admin:
+  - edit existing sections
+  - add new section from selector ("Add new")
+  - delete/reset sections to stock defaults
+  - manage per-section cards (heading/subheading/body)
+- Dynamic custom section routes (e.g. `/test`) rendered from admin-defined section data
+- Styled confirmation dialogs (instead of browser-native confirm) for destructive actions
+- 404 page
 - Theme and language settings in profile
 - Animated page/card transitions
 - Scroll-to-top button
 - Local state persistence (theme/language/profile data)
+- Persistent admin session in local storage
 
 ## Requirements
 
@@ -80,4 +95,5 @@ Build output is generated in `dist/`.
 
 - The home slider currently uses one local image (`src/assets/flag.png`) for all slides.
 - The project does not include a backend/API yet; profile/auth state is stored locally.
+- Admin actions are currently local/demo scope (state persistence only; no server-side RBAC).
 - Some textual content and contact data are demo placeholders.
